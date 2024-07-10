@@ -130,7 +130,7 @@ public class LogAspect
         }
         finally
         {
-            TIME_THREADLOCAL.remove();
+            //TIME_THREADLOCAL.remove();
         }
     }
 
