@@ -23,13 +23,13 @@ import oshi.util.Util;
 
 /**
  * 服务器相关信息
- * 
+ *
  * @author ruoyi
  */
 public class Server
 {
     private static final int OSHI_WAIT_SECOND = 1000;
-    
+
     /**
      * CPU相关信息
      */
@@ -130,6 +130,7 @@ public class Server
         long[] prevTicks = processor.getSystemCpuLoadTicks();
         Util.sleep(OSHI_WAIT_SECOND);
         long[] ticks = processor.getSystemCpuLoadTicks();
+        /**
         long nice = ticks[TickType.NICE.getIndex()] - prevTicks[TickType.NICE.getIndex()];
         long irq = ticks[TickType.IRQ.getIndex()] - prevTicks[TickType.IRQ.getIndex()];
         long softirq = ticks[TickType.SOFTIRQ.getIndex()] - prevTicks[TickType.SOFTIRQ.getIndex()];
@@ -138,6 +139,15 @@ public class Server
         long user = ticks[TickType.USER.getIndex()] - prevTicks[TickType.USER.getIndex()];
         long iowait = ticks[TickType.IOWAIT.getIndex()] - prevTicks[TickType.IOWAIT.getIndex()];
         long idle = ticks[TickType.IDLE.getIndex()] - prevTicks[TickType.IDLE.getIndex()];
+        */
+        long nice = ticks[1] - prevTicks[1];
+        long irq = ticks[5] - prevTicks[5];
+        long softirq = ticks[6] - prevTicks[6];
+        long steal = ticks[7] - prevTicks[7];
+        long cSys = ticks[2] - prevTicks[2];
+        long user = ticks[0] - prevTicks[0];
+        long iowait = ticks[4] - prevTicks[4];
+        long idle = ticks[3] - prevTicks[3];
         long totalCpu = user + nice + cSys + idle + iowait + irq + softirq + steal;
         cpu.setCpuNum(processor.getLogicalProcessorCount());
         cpu.setTotal(totalCpu);
@@ -209,7 +219,7 @@ public class Server
 
     /**
      * 字节转换
-     * 
+     *
      * @param size 字节大小
      * @return 转换后值
      */

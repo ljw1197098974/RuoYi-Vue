@@ -4,7 +4,7 @@ target/
 !**/src/test/**/target/
 
 ### RuoYi ###
-
+/logs
 
 ### IntelliJ IDEA ###
 .idea
