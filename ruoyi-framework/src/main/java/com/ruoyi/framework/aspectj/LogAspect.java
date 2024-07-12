@@ -58,10 +58,10 @@ public class LogAspect {
         String className = joinPoint.getTarget().getClass().getName();
         String methodName = joinPoint.getSignature().getName();
         String method = className + "." + methodName + "()";
-        Map<String, Long> map = new HashMap<>();
-        map.put(method, System.currentTimeMillis());
-        TIMELIST.add(map);
-        log.debug("method: " + map + " TIMELIST：" + TIMELIST);
+        Map<String, Long> methodTime = new HashMap<>();
+        methodTime.put(method, System.currentTimeMillis());
+        TIMELIST.add(methodTime);
+        log.info("boBefore，methodTime: " + methodTime + "，timeList：" + TIMELIST);
     }
 
     /**
@@ -119,11 +119,10 @@ public class LogAspect {
             // 处理设置注解上的参数
             getControllerMethodDescription(joinPoint, controllerLog, operLog, jsonResult);
             // 设置消耗时间
-            for (int i = 0; i < TIMELIST.size(); i++) {
-                Map<String, Long> map = TIMELIST.get(i);
-                if (map.containsKey(method)) {
-                    operLog.setCostTime(System.currentTimeMillis() - map.get(method));
-                    TIMELIST.remove(i);
+            for (Map<String, Long> methodTime : TIMELIST) {
+                if (methodTime.containsKey(method)) {
+                    operLog.setCostTime(System.currentTimeMillis() - methodTime.get(method));
+                    TIMELIST.remove(methodTime);
                     break;
                 }
             }
@@ -135,7 +134,7 @@ public class LogAspect {
             log.error("异常信息:{}", exp.getMessage());
             exp.printStackTrace();
         } finally {
-            log.debug("TIMELIST：" + TIMELIST);
+            log.info("timeList：" + TIMELIST);
         }
     }
 
