@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.ruoyi.common.annotation.Log;
+import com.ruoyi.common.annotation.LogController;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.entity.SysDictData;
@@ -49,7 +49,7 @@ public class SysDictDataController extends BaseController
         return getDataTable(list);
     }
 
-    @Log(title = "字典数据", businessType = BusinessType.EXPORT)
+    @LogController(title = "字典数据", businessType = BusinessType.EXPORT)
     @PreAuthorize("@ss.hasPermi('system:dict:export')")
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysDictData dictData)
@@ -87,7 +87,7 @@ public class SysDictDataController extends BaseController
      * 新增字典类型
      */
     @PreAuthorize("@ss.hasPermi('system:dict:add')")
-    @Log(title = "字典数据", businessType = BusinessType.INSERT)
+    @LogController(title = "字典数据", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@Validated @RequestBody SysDictData dict)
     {
@@ -99,7 +99,7 @@ public class SysDictDataController extends BaseController
      * 修改保存字典类型
      */
     @PreAuthorize("@ss.hasPermi('system:dict:edit')")
-    @Log(title = "字典数据", businessType = BusinessType.UPDATE)
+    @LogController(title = "字典数据", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@Validated @RequestBody SysDictData dict)
     {
@@ -111,7 +111,7 @@ public class SysDictDataController extends BaseController
      * 删除字典类型
      */
     @PreAuthorize("@ss.hasPermi('system:dict:remove')")
-    @Log(title = "字典类型", businessType = BusinessType.DELETE)
+    @LogController(title = "字典类型", businessType = BusinessType.DELETE)
     @DeleteMapping("/{dictCodes}")
     public AjaxResult remove(@PathVariable Long[] dictCodes)
     {

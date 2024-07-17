@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.ruoyi.common.annotation.Log;
+import com.ruoyi.common.annotation.LogController;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
@@ -81,7 +81,7 @@ public class SysMenuController extends BaseController
      * 新增菜单
      */
     @PreAuthorize("@ss.hasPermi('system:menu:add')")
-    @Log(title = "菜单管理", businessType = BusinessType.INSERT)
+    @LogController(title = "菜单管理", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@Validated @RequestBody SysMenu menu)
     {
@@ -101,7 +101,7 @@ public class SysMenuController extends BaseController
      * 修改菜单
      */
     @PreAuthorize("@ss.hasPermi('system:menu:edit')")
-    @Log(title = "菜单管理", businessType = BusinessType.UPDATE)
+    @LogController(title = "菜单管理", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@Validated @RequestBody SysMenu menu)
     {
@@ -125,7 +125,7 @@ public class SysMenuController extends BaseController
      * 删除菜单
      */
     @PreAuthorize("@ss.hasPermi('system:menu:remove')")
-    @Log(title = "菜单管理", businessType = BusinessType.DELETE)
+    @LogController(title = "菜单管理", businessType = BusinessType.DELETE)
     @DeleteMapping("/{menuId}")
     public AjaxResult remove(@PathVariable("menuId") Long menuId)
     {

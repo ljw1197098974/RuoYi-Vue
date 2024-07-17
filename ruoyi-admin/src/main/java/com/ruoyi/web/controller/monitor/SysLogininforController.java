@@ -2,6 +2,8 @@ package com.ruoyi.web.controller.monitor;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+
+import com.ruoyi.common.annotation.LogController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -10,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
@@ -44,7 +45,7 @@ public class SysLogininforController extends BaseController
         return getDataTable(list);
     }
 
-    @Log(title = "登录日志", businessType = BusinessType.EXPORT)
+    @LogController(title = "登录日志", businessType = BusinessType.EXPORT)
     @PreAuthorize("@ss.hasPermi('monitor:logininfor:export')")
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysLogininfor logininfor)
@@ -55,7 +56,7 @@ public class SysLogininforController extends BaseController
     }
 
     @PreAuthorize("@ss.hasPermi('monitor:logininfor:remove')")
-    @Log(title = "登录日志", businessType = BusinessType.DELETE)
+    @LogController(title = "登录日志", businessType = BusinessType.DELETE)
     @DeleteMapping("/{infoIds}")
     public AjaxResult remove(@PathVariable Long[] infoIds)
     {
@@ -63,7 +64,7 @@ public class SysLogininforController extends BaseController
     }
 
     @PreAuthorize("@ss.hasPermi('monitor:logininfor:remove')")
-    @Log(title = "登录日志", businessType = BusinessType.CLEAN)
+    @LogController(title = "登录日志", businessType = BusinessType.CLEAN)
     @DeleteMapping("/clean")
     public AjaxResult clean()
     {
@@ -72,7 +73,7 @@ public class SysLogininforController extends BaseController
     }
 
     @PreAuthorize("@ss.hasPermi('monitor:logininfor:unlock')")
-    @Log(title = "账户解锁", businessType = BusinessType.OTHER)
+    @LogController(title = "账户解锁", businessType = BusinessType.OTHER)
     @GetMapping("/unlock/{userName}")
     public AjaxResult unlock(@PathVariable("userName") String userName)
     {

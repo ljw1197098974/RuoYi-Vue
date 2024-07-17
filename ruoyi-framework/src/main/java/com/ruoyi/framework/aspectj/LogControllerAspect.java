@@ -1,7 +1,8 @@
 package com.ruoyi.framework.aspectj;
 
+
 import com.alibaba.fastjson2.JSON;
-import com.ruoyi.common.annotation.Log;
+import com.ruoyi.common.annotation.LogController;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.enums.BusinessStatus;
@@ -22,23 +23,25 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.NamedThreadLocal;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * 操作日志记录处理
- * 
- * @author ruoyi
+ *
+ * @author liujw
  */
 @Aspect
 @Component
-public class LogAspect {
-    private static final Logger log = LoggerFactory.getLogger(LogAspect.class);
+public class LogControllerAspect {
+    private static final Logger log = LoggerFactory.getLogger(LogControllerAspect.class);
 
     /**
      * 排除敏感属性字段
@@ -48,20 +51,14 @@ public class LogAspect {
     /**
      * 计算操作消耗时间
      */
-    private static List<Map<String, Long>> TIMELIST = new ArrayList<>();
+    private static final ThreadLocal<Long> TIME_THREADLOCAL = new NamedThreadLocal<Long>("Cost Time");
 
     /**
      * 处理请求前执行
      */
     @Before(value = "@annotation(controllerLog)")
-    public void boBefore(JoinPoint joinPoint, Log controllerLog) {
-        String className = joinPoint.getTarget().getClass().getName();
-        String methodName = joinPoint.getSignature().getName();
-        String method = className + "." + methodName + "()";
-        Map<String, Long> methodTime = new HashMap<>();
-        methodTime.put(method, System.currentTimeMillis());
-        TIMELIST.add(methodTime);
-        log.info("boBefore，methodTime: " + methodTime + "，timeList：" + TIMELIST);
+    public void boBefore(JoinPoint joinPoint, LogController controllerLog) {
+        TIME_THREADLOCAL.set(System.currentTimeMillis());
     }
 
     /**
@@ -70,7 +67,7 @@ public class LogAspect {
      * @param joinPoint 切点
      */
     @AfterReturning(pointcut = "@annotation(controllerLog)", returning = "jsonResult")
-    public void doAfterReturning(JoinPoint joinPoint, Log controllerLog, Object jsonResult) {
+    public void doAfterReturning(JoinPoint joinPoint, LogController controllerLog, Object jsonResult) {
         handleLog(joinPoint, controllerLog, null, jsonResult);
     }
 
@@ -81,11 +78,11 @@ public class LogAspect {
      * @param e         异常
      */
     @AfterThrowing(value = "@annotation(controllerLog)", throwing = "e")
-    public void doAfterThrowing(JoinPoint joinPoint, Log controllerLog, Exception e) {
+    public void doAfterThrowing(JoinPoint joinPoint, LogController controllerLog, Exception e) {
         handleLog(joinPoint, controllerLog, e, null);
     }
 
-    protected void handleLog(final JoinPoint joinPoint, Log controllerLog, final Exception e, Object jsonResult) {
+    protected void handleLog(final JoinPoint joinPoint, LogController controllerLog, final Exception e, Object jsonResult) {
         try {
             // 获取当前的用户
             LoginUser loginUser = SecurityUtils.getLoginUser();
@@ -96,7 +93,8 @@ public class LogAspect {
             // 请求的地址
             String ip = IpUtils.getIpAddr();
             operLog.setOperIp(ip);
-            operLog.setOperUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
+            String requestURI = StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255);
+            operLog.setOperUrl(requestURI);
             if (loginUser != null) {
                 operLog.setOperName(loginUser.getUsername());
                 SysUser currentUser = loginUser.getUser();
@@ -112,53 +110,45 @@ public class LogAspect {
             // 设置方法名称
             String className = joinPoint.getTarget().getClass().getName();
             String methodName = joinPoint.getSignature().getName();
-            String method = className + "." + methodName + "()";
-            operLog.setMethod(method);
+            operLog.setMethod(className + "." + methodName + "()");
             // 设置请求方式
             operLog.setRequestMethod(ServletUtils.getRequest().getMethod());
             // 处理设置注解上的参数
             getControllerMethodDescription(joinPoint, controllerLog, operLog, jsonResult);
             // 设置消耗时间
-            for (Map<String, Long> methodTime : TIMELIST) {
-                if (methodTime.containsKey(method)) {
-                    operLog.setCostTime(System.currentTimeMillis() - methodTime.get(method));
-                    TIMELIST.remove(methodTime);
-                    break;
-                }
-            }
+            operLog.setCostTime(System.currentTimeMillis() - TIME_THREADLOCAL.get());
             // 保存数据库
             AsyncManager.me().execute(AsyncFactory.recordOper(operLog));
         } catch (Exception exp) {
             // 记录本地异常日志
-            TIMELIST.clear();
             log.error("异常信息:{}", exp.getMessage());
             exp.printStackTrace();
         } finally {
-            log.info("timeList：" + TIMELIST);
+            TIME_THREADLOCAL.remove();
         }
     }
 
     /**
      * 获取注解中对方法的描述信息 用于Controller层注解
      *
-     * @param log     日志
-     * @param operLog 操作日志
+     * @param logController 日志
+     * @param operLog       操作日志
      * @throws Exception
      */
-    public void getControllerMethodDescription(JoinPoint joinPoint, Log log, SysOperLog operLog, Object jsonResult) throws Exception {
+    public void getControllerMethodDescription(JoinPoint joinPoint, LogController logController, SysOperLog operLog, Object jsonResult) throws Exception {
         // 设置action动作
-        operLog.setBusinessType(log.businessType().ordinal());
+        operLog.setBusinessType(logController.businessType().ordinal());
         // 设置标题
-        operLog.setTitle(log.title());
+        operLog.setTitle(logController.title());
         // 设置操作人类别
-        operLog.setOperatorType(log.operatorType().ordinal());
+        operLog.setOperatorType(logController.operatorType().ordinal());
         // 是否需要保存request，参数和值
-        if (log.isSaveRequestData()) {
+        if (logController.isSaveRequestData()) {
             // 获取参数的信息，传入到数据库中。
-            setRequestValue(joinPoint, operLog, log.excludeParamNames());
+            setRequestValue(joinPoint, operLog, logController.excludeParamNames());
         }
         // 是否需要保存response，参数和值
-        if (log.isSaveResponseData() && StringUtils.isNotNull(jsonResult)) {
+        if (logController.isSaveResponseData() && StringUtils.isNotNull(jsonResult)) {
             operLog.setJsonResult(StringUtils.substring(JSON.toJSONString(jsonResult), 0, 2000));
         }
     }
@@ -170,12 +160,16 @@ public class LogAspect {
      * @throws Exception 异常
      */
     private void setRequestValue(JoinPoint joinPoint, SysOperLog operLog, String[] excludeParamNames) throws Exception {
+
         Map<?, ?> paramsMap = ServletUtils.getParamMap(ServletUtils.getRequest());
         String requestMethod = operLog.getRequestMethod();
         if (StringUtils.isEmpty(paramsMap)
                 && (HttpMethod.PUT.name().equals(requestMethod) || HttpMethod.POST.name().equals(requestMethod))) {
             String params = argsArrayToString(joinPoint.getArgs(), excludeParamNames);
             operLog.setOperParam(StringUtils.substring(params, 0, 2000));
+        } else if(HttpMethod.DELETE.name().equals(requestMethod)){
+            String requestURI = ServletUtils.getRequest().getRequestURI();
+            log.info("requestURI  " + requestURI);
         } else {
             operLog.setOperParam(StringUtils.substring(JSON.toJSONString(paramsMap, excludePropertyPreFilter(excludeParamNames)), 0, 2000));
         }

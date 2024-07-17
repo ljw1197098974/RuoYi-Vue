@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.ruoyi.common.annotation.Log;
+import com.ruoyi.common.annotation.LogController;
 import com.ruoyi.common.enums.BusinessType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -212,7 +212,7 @@ public class SysDeptServiceImpl implements ISysDeptService
      * @return 结果
      */
     @Override
-    @Log(title = "部门管理TEST新增", businessType = BusinessType.INSERT)
+    @LogController(title = "部门管理TEST新增", businessType = BusinessType.INSERT)
     public int insertDept(SysDept dept)
     {
         SysDept info = deptMapper.selectDeptById(dept.getParentId());
